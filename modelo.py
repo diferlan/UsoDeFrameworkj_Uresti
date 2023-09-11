@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt #Esta es una de las principales bibliotecas de v
 from mlxtend.evaluate import bias_variance_decomp #Esta función se utiliza para descomponer el MSE de un modelo en bias, variance y error
 from sklearn.model_selection import learning_curve #Esta función es parte de scikit-learn, se utiliza para visualzar el rendimiento del modelo con tamaños de conjunto de entrenamiento variables
 import numpy as np #Esta libreria se ocupa para realizar operaciones con arreglos y matrices, además implementa algunas operaciones matemáticas
+from sklearn.metrics import roc_curve, roc_auc_score, auc #Esta función sirve para calcular la curva ROC y evaluar el modleo de clasificación
+
 
 
 colordict={'train':'teal','test':'skyblue','validation':'cornflowerblue'} #Este diccionario se ocupa para mantener coherencia en los colores con los que se representa cada conjunto en diferentes visualizaciones, la llave indica a que conjunto hace referencia y el valor es el nombre de un color compatible con matplotlib
@@ -32,7 +34,7 @@ print('Entrenando...')
 
 #Creamos los conjuntos de entrenamiento, prueba y validación
 X_train, X_, y_train, y_ = train_test_split(X, y, test_size=0.3, random_state=6) #División de los datos en 2 conjuntos entrenamiento y los demás dato serán usados para crear conjunto de prueba y validación. Se dividen 70-30, con esto nos aseguramos tener suficientes datos
-X_test, X_val, y_test, y_val = train_test_split(X_, y_, test_size=0.33, random_state=6) #División de los datos restantes en 2 conjuntos, validación y prueba.
+X_test, X_val, y_test, y_val = train_test_split(X_, y_, test_size=0.5, random_state=6) #División de los datos restantes en 2 conjuntos, validación y prueba.
 
 
 #Para visualizar la división de los datos se harán dos gráficos: Un scatter plot, 
@@ -57,6 +59,18 @@ plt.show() #Mostramos el gráfico
 plt.close()
 
 time.sleep(10)
+#Calculamos la estadistica básica de la variable "avg_glucose_level" en cada conjunto usando el método describe para comparar las diferencias y similitudes en los conjuntos
+print(f'Estadística en la el nivel medio de glucosa en el conjunto de entrenamiento: {X_train["avg_glucose_level"].describe()}')
+print(f'Estadística en la el nivel medio de glucosa en el conjunto de prueba: {X_test["avg_glucose_level"].describe()}')
+print(f'Estadística en la el nivel medio de glucosa en el conjunto de validación: {X_val["avg_glucose_level"].describe()}')
+
+#Usamos el método index junto a sort values para tomar los primeros índices de cada conjunto y demostrar como estos toman partes diferentes del dataset original
+print(f'Primeros 10 índices en el conjunto de entrenamiento: {X_train.index.sort_values()[:10]}')
+print(f'Primeros 10 índices en el conjunto de prueba: {X_test.index.sort_values()[:10]}')
+print(f'Primeros 10 índices en el conjunto de validación: {X_val.index.sort_values()[:10]}')
+
+
+
 #La gráfica de barras se realiza de la siguiente manera:
 Xt_size, Xte_size, Xv_size = X_train.shape[0],X_test.shape[0], X_val.shape[0] #Extraemos el número de muestras que vienen en cada conjunto con el método shape[0], este argumento se usará como la altura de la barra
 fig,ax = plt.subplots(figsize=(10,10)) #Se inicializa la figura, así la podemos personalizar de mejor manera. Introducimos el tamaño que le daremos a la figura como parametro aquí
@@ -75,12 +89,14 @@ plt.show() #Finalmente se muestra la figura
 plt.close()
 
 
+
+
 #Crea un modelo de Gradient Boosting Classifier, usamos un learning rate bajo y suficientes estimadores para que el modelo se ajuste de la mejor manera, intentando evitar overfitting
-gbc = GradientBoostingClassifier()#learning_rate=0.05,n_estimators=2000)
+gbc = GradientBoostingClassifier(learning_rate=0.2,n_estimators=2000)
 # Entrena el modelo en los datos de entrenamiento
 gbc.fit(X_train, y_train)
-#Calcula el puntaje (accuracy) del modelo entrenado usando el conjunto de prueba
-print(f'Score en el conjunto de prueba: {gbc.score(X_test,y_test)}')
+#Calcula el puntaje (accuracy) del modelo entrenado usando el conjunto de validación
+print(f'Score en el conjunto de validación: {gbc.score(X_val,y_val)}')
 y_pred = gbc.predict(X_val) #Realizamos las predicciones con el modelo y pasando los datos del conjunto de validación
 #Extraemos los resultados de las predicicones con diferentes métricas y los imprimos, usamos una precisión a 4 decimales para notar las pequeñas diferencias
 accuracy,recall,precision,f1 = accuracy_score(y_val, y_pred), recall_score(y_val,y_pred) , precision_score(y_val,y_pred), f1_score(y_val,y_pred)
@@ -90,6 +106,18 @@ print(f'Precision en el conjunto de validación: {precision:.4f}') #Mostramos en
 print(f'F1 en el conjunto de validación: {f1:.4f}') #Mostramos en terminal el puntaje que tiene calculando el f1 score
 #Imprimimos la matriz de confusión para ver en que esta fallando el modelo y visualizar si tiene clasifica falsos positivos o falsos negativos o ninguno
 print(f'Confusion Matrix: \n{confusion_matrix(y_val, y_pred)}')
+time.sleep(4) #Se espera 4 segundos para que se puede ver la información quer se acaba de mostrar
+
+#Repetimos el proceso anterior usando el conjunto de prueba en esta ocasión
+y_pred = gbc.predict(X_test) #Realizamos las predicciones con el modelo y pasando los datos del conjunto de prueba
+#Extraemos los resultados de las predicicones con diferentes métricas y los imprimos, usamos una precisión a 4 decimales para notar las pequeñas diferencias
+accuracy,recall,precision,f1 = accuracy_score(y_test, y_pred), recall_score(y_test,y_pred) , precision_score(y_test,y_pred), f1_score(y_test,y_pred)
+print(f'Accuracy en el conjunto de prueba: {accuracy:.4f}') #Mostramos en terminal el puntaje que tiene calculando el accuracy
+print(f'Recall en el conjunto de prueba: {recall:.4f}') #Mostramos en terminal el puntaje que tiene calculando el recall
+print(f'Precision en el conjunto de prueba: {precision:.4f}') #Mostramos en terminal el puntaje que tiene calculando la precision
+print(f'F1 en el conjunto de prueba: {f1:.4f}') #Mostramos en terminal el puntaje que tiene calculando el f1 score
+#Imprimimos la matriz de confusión para ver en que esta fallando el modelo y visualizar si tiene clasifica falsos positivos o falsos negativos o ninguno
+print(f'Confusion Matrix: \n{confusion_matrix(y_test, y_pred)}')
 time.sleep(4) #Se espera 4 segundos para que se puede ver la información quer se acaba de mostrar
 
 
@@ -113,8 +141,8 @@ y_test_ = np.array(y_test)
 #Usamos la función bias_variance_decomp para calcular el bias y varianza del modelo
 #El bias nos ayuda a indicar si el modelo se ajusta bien a los datos de entenamiento
 #La varianza nos sirve para medir la sensibilidad del modelo al ruido y medir el overfitting
-loss, bias, var = bias_variance_decomp(gbc, X_train_, y_train_, X_test_, y_test_, loss='mse', num_rounds=5, random_seed=1)
-#print('MSE: %.4f' % loss)
+loss, bias, var = bias_variance_decomp(gbc, X_train_, y_train_, X_test_, y_test_, loss='0-1_loss', num_rounds=5, random_seed=1)
+print('Loss: %.4f' % loss) #Imprimimos en terminal el valor de perdida que obtuvimos
 print('Bias: %.4f' % bias) #Imprimimos en terminal el valor del bias que obtuvimos
 print('Variance: %.4f' % var) #Imprimos en terminal el valor de varianza que obtuvimos
 
@@ -131,3 +159,30 @@ plt.title('Curva de aprendizaje') #Se agrega el título
 plt.xlabel('# de datos en el conjunto de entrenamiento') #Se agrega la descripción del eje x para ayudar en la interpretación del gráfico
 plt.ylabel('Score') #Se agrega la descripción del eje y para ayudar en la interpretación del gráfico
 plt.show() #Se muestra la gráfica
+
+
+#Curva ROC
+#Calculamos las probabilidas de clasificar en cada categoria las entradas de los conjuntos de validación y prueba usando el método del modelo predict_proba
+y_val_pred_prob = gbc.predict_proba(X_val)[:, 1]
+y_test_pred_prob = gbc.predict_proba(X_test)[:, 1]
+# Usando la función roc_curve se calcula la curva ROC del conjunto de validación
+fpr_val, tpr_val, _ = roc_curve(y_val, y_val_pred_prob)
+#Usando la función AUC para el conjunto de validación
+roc_auc_val = auc(fpr_val, tpr_val)
+# Se repite el proceso para el conjunto de prueba
+fpr_test, tpr_test, _ = roc_curve(y_test, y_test_pred_prob)
+roc_auc_test = auc(fpr_test, tpr_test)
+# Graficar las curvas ROC para ambos conjuntos
+plt.figure(figsize=(8, 6)) #Inicializamos la figura con un tamaño de (8,6)
+#Graficamos la curva roc del conjunto de validación y asignamos el color correspondiente al conjunto que estamos usando, agregamos la etiqueta correspondiente
+plt.plot(fpr_val, tpr_val, color=colordict['validation'], lw=2, label=f'ROC (Validación) AUC = {roc_auc_val:.2f}')
+#Se repite el proceso para graficar la curva roc del conjunto de prueba
+plt.plot(fpr_test, tpr_test, color=colordict['test'], lw=2, label=f'ROC (Prueba) AUC = {roc_auc_test:.2f}')
+plt.plot([0, 1], [0, 1], color='gray', linestyle='--') #Agregamos la diagonal que representa el clasificador aleatorio
+plt.xlim([0.0, 1.0]) #Establecemos los límites en el eje x
+plt.ylim([0.0, 1.05]) #Establecemos el límite en el eje y
+plt.xlabel('Tasa de Falsos Positivos (FPR)') #Agregamos el titulo del eje X para mejorar la comprensión de la gráfica
+plt.ylabel('Tasa de Verdaderos Positivos (TPR)') #Agregamos el titulo del eje Y para mejorar la comprensión de la gráfica
+plt.title('Curva ROC') #Agregamos el título de la tabla
+plt.legend() #Agregamos la leyenda
+plt.show() #Mostramos la gráfica
