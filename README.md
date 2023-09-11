@@ -6,6 +6,8 @@ This repository includes an implementation of Gradient Boosting Classifier on a 
 The main files in this repository are:
 - README.md: This file describing the contents and function of the repository
 - modelo.py: Is the file containing the model implementation and analysis of the model. It is mandatory to run de file in the same directory as the dataset, otherwise it will fail it's execution. This file, when ran, automatically iniciates the algortithm using the dataset determined in the code (stroke_data.csv). You only need to run it and it will automatically run and fit the model, return and print all the parts of the analysis, for a better undestanding of the analysis please refer to the report. CAUTION: Patience is key in the execution of the file; if a figure is shown in screen it must be closed to continue the code execution.
+- stroke_data.csv: This is the dataset chosen to test the algorithm, it most be in the same folder as the .py file in order to run smoothly.
+- Momento de Retroalimentación_ Módulo 2 Análisis y Reporte sobre el desempeño del modelo.pdf: This document is the report and analysis of the model explained in detail
 
 This file, when ran, automatically iniciates the algorith usign the dataset determined in the code (stroke_data.csv). You only need to run it and it will automatically make the predicitons using said dataset and will print the predicitions, the accuracy and the total of correct predictions. This is an updated version that includes: minor fixes, more evaluation metrics, deeper code documentation, comparison charts and a brief conclusion.
 
